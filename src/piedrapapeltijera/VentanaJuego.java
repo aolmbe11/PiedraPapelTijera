@@ -4,56 +4,90 @@ import java.awt.Color;
 import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
-import javazoom.jl.player.Player;
 
+/**
+ * Ventana Principal del juego Piedra, Papel, Tijera.
+ *
+ * @author Ángel Olmedo Benítez
+ * @version 1.0
+ */
 public class VentanaJuego extends javax.swing.JFrame {
 
+    /**
+     * CLASICO constante para indicar el modo de juego Clásico.
+     */
     public static final int CLASICO = 0;
+    /**
+     * BIG_BANG constante para indicar el modo de juego Big Bang Theory.
+     */
     public static final int BIG_BANG = 1;
 
-    private int apuestaUsuario = 0;
-    private int apuestaPC = 0;
+    private static int apuestaUsuario = 0;
+    private static int apuestaRival = 0;
 
     private int manoVencedora = 0;
 
     private int puntuacionUsuario = 0;
     private int puntuacionPC = 0;
 
-    public int getApuestaUsuario() {
-        return apuestaUsuario;
-    }
+    private String nickRival;
 
-    public int getApuestaPC() {
-       return apuestaPC;
-    }
+    private Servidor servidor;
+    private Cliente cliente;
 
     private static Color colorTexto;
 
     private static int modoJuego;
 
-    JDialogConfiguracion jDialogConfig = new JDialogConfiguracion(this, true);
+    private JDialogConfiguracion jDialogConfig = new JDialogConfiguracion(this, true);
 
-    Random generaNum = new Random();
+    private Random generaNum = new Random();
 
-    ImageIcon piedrecita = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/piedra.png"));
-    ImageIcon papelito = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/paperito.png"));
-    ImageIcon tijerita = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/tijerita.png"));
-    ImageIcon spockito = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/spockito.png"));
-    ImageIcon lagartito = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/lizardito.png"));
+    private ImageIcon piedrecita = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/piedra.png"));
+    private ImageIcon papelito = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/paperito.png"));
+    private ImageIcon tijerita = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/tijerita.png"));
+    private ImageIcon spockito = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/spockito.png"));
+    private ImageIcon lagartito = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/lizardito.png"));
 
-    ImageIcon piedra = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/rock.png"));
-    ImageIcon papel = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/Crumpled-Paper.png"));
-    ImageIcon tijera = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/tijera.png"));
-    ImageIcon lagarto = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/lizard.png"));
-    ImageIcon spock = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/spock.png"));
-    ImageIcon vs = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/vs.png"));
+    private ImageIcon piedra = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/rock.png"));
+    private ImageIcon papel = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/Crumpled-Paper.png"));
+    private ImageIcon tijera = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/tijera.png"));
+    private ImageIcon lagarto = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/lizard.png"));
+    private ImageIcon spock = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/spock.png"));
+    private ImageIcon vs = new ImageIcon(getClass().getResource("/piedrapapeltijera/imagenes/vs.png"));
+    
+   
 
     public VentanaJuego() {
         initComponents();
 
-        setLocationRelativeTo(null);
-
         jDialogConfig.setVisible(true);
+
+        if (JDialogConfiguracion.getModoMultijugador() == 1) {
+            servidor = new Servidor(1024);
+            servidor.start();
+            System.out.println("He creado Servidor");
+//            servidor.enviarNick();
+//            nickRival = servidor.recibirNick();
+//            etiquetaNickRival.setText(nickRival);
+        } else {
+            if (JDialogConfiguracion.getModoMultijugador() == 2) {
+                cliente = new Cliente("localhost", 1024);
+                System.out.println("He creado Cliente");
+//                cliente.enviarNick();
+//                nickRival = cliente.recibirNick();
+//                etiquetaNickRival.setText(nickRival);
+            }
+        }
+
+        if(JDialogConfiguracion.isMultijugadorActivo() == false){
+            etiquetaNickRival.setText("Ordenador");
+        } else{
+            etiquetaNickRival.setText("Rival");
+        }
+        
+        
+        setLocationRelativeTo(null);
 
         colorTexto = JDialogConfiguracion.getColorSeleccionado();
 
@@ -107,9 +141,8 @@ public class VentanaJuego extends javax.swing.JFrame {
         contadorEmpates = new javax.swing.JLabel();
         contadorVictoriasPC = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        etiquetaOrdenador = new javax.swing.JLabel();
+        etiquetaNickRival = new javax.swing.JLabel();
         etiquetaApuestaPC = new javax.swing.JLabel();
-        botonConfig = new javax.swing.JButton();
         botonLeyenda = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -213,11 +246,11 @@ public class VentanaJuego extends javax.swing.JFrame {
 
         etiquetaVS.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
-        contadorVictoriasUsuario.setFont(new java.awt.Font("Comic Sans MS", 0, 14)); // NOI18N
+        contadorVictoriasUsuario.setFont(new java.awt.Font("Comic Sans MS", 0, 24)); // NOI18N
 
-        contadorEmpates.setFont(new java.awt.Font("Comic Sans MS", 0, 14)); // NOI18N
+        contadorEmpates.setFont(new java.awt.Font("Comic Sans MS", 0, 24)); // NOI18N
 
-        contadorVictoriasPC.setFont(new java.awt.Font("Comic Sans MS", 0, 14)); // NOI18N
+        contadorVictoriasPC.setFont(new java.awt.Font("Comic Sans MS", 0, 24)); // NOI18N
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -274,8 +307,7 @@ public class VentanaJuego extends javax.swing.JFrame {
         jPanel3.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         jPanel3.setPreferredSize(new java.awt.Dimension(257, 327));
 
-        etiquetaOrdenador.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        etiquetaOrdenador.setText("Ordenador");
+        etiquetaNickRival.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
         etiquetaApuestaPC.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
@@ -286,7 +318,7 @@ public class VentanaJuego extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(etiquetaOrdenador, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE)
+                    .addComponent(etiquetaNickRival, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE)
                     .addComponent(etiquetaApuestaPC, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -294,18 +326,11 @@ public class VentanaJuego extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(6, 6, 6)
-                .addComponent(etiquetaOrdenador, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(etiquetaNickRival, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(etiquetaApuestaPC, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(71, 71, 71))
         );
-
-        botonConfig.setText("Config");
-        botonConfig.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                botonConfigActionPerformed(evt);
-            }
-        });
 
         botonLeyenda.setText("Leyenda");
         botonLeyenda.addActionListener(new java.awt.event.ActionListener() {
@@ -328,8 +353,6 @@ public class VentanaJuego extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(botonConfig)
-                        .addGap(18, 18, 18)
                         .addComponent(botonLeyenda)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
@@ -343,9 +366,7 @@ public class VentanaJuego extends javax.swing.JFrame {
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(botonConfig)
-                    .addComponent(botonLeyenda))
+                .addComponent(botonLeyenda)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -357,13 +378,9 @@ public class VentanaJuego extends javax.swing.JFrame {
         etiquetaApuestaJugador.setIcon(piedra);
 
         apuestaUsuario = PiedraPapelTijera.PIEDRA;
-
-        // Crear método para repetir en el resto de los botones. Hay que pasarle la apuesta del usuario
-        // por parámetros, y genera la apuesta del pc, calcula el vencedor, muestra los datos, 
-        // reinicia la partida y limpia la pantalla.
         this.controlaJugada(apuestaUsuario);
 
-        System.out.println("Puntuacion PC en Ventana " + puntuacionPC);
+        System.out.println("Puntuacion PC en Ventana " + apuestaRival);
         System.out.println("Puntuacion Usuario en Ventana " + puntuacionUsuario);
 
 
@@ -377,7 +394,7 @@ public class VentanaJuego extends javax.swing.JFrame {
 
         this.controlaJugada(apuestaUsuario);
 
-        System.out.println("Puntuacion PC en Ventana " + puntuacionPC);
+        System.out.println("Puntuacion PC en Ventana " + apuestaRival);
         System.out.println("Puntuacion Usuario en Ventana " + puntuacionUsuario);
 
     }//GEN-LAST:event_botonPapelActionPerformed
@@ -390,7 +407,7 @@ public class VentanaJuego extends javax.swing.JFrame {
 
         this.controlaJugada(apuestaUsuario);
 
-        System.out.println("Puntuacion PC en Ventana " + puntuacionPC);
+        System.out.println("Puntuacion PC en Ventana " + apuestaRival);
         System.out.println("Puntuacion Usuario en Ventana " + puntuacionUsuario);
     }//GEN-LAST:event_botonTijerasActionPerformed
 
@@ -402,7 +419,7 @@ public class VentanaJuego extends javax.swing.JFrame {
 
         this.controlaJugada(apuestaUsuario);
 
-        System.out.println("Puntuacion PC en Ventana " + puntuacionPC);
+        System.out.println("Puntuacion PC en Ventana " + apuestaRival);
         System.out.println("Puntuacion Usuario en Ventana " + puntuacionUsuario);
 
     }//GEN-LAST:event_botonLagartoActionPerformed
@@ -413,36 +430,12 @@ public class VentanaJuego extends javax.swing.JFrame {
 
         apuestaUsuario = PiedraPapelTijera.SPOCK;
 
-        apuestaPC = this.generarApuestaPC();
-
         this.controlaJugada(apuestaUsuario);
 
         System.out.println("Puntuacion PC en Ventana " + puntuacionPC);
         System.out.println("Puntuacion Usuario en Ventana " + puntuacionUsuario);
 
     }//GEN-LAST:event_botonSpockActionPerformed
-
-    private void botonConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonConfigActionPerformed
-        jDialogConfig.setVisible(true);
-        modoJuego = JDialogConfiguracion.getModoJuego();
-        switch (modoJuego) {
-            case 0:
-                botonLagarto.setVisible(false);
-                botonSpock.setVisible(false);
-                break;
-            case 1:
-                botonLagarto.setVisible(true);
-                botonSpock.setVisible(true);
-                break;
-        }
-
-        colorTexto = JDialogConfiguracion.getColorSeleccionado();
-
-        contadorVictoriasUsuario.setForeground(colorTexto);
-        contadorEmpates.setForeground(colorTexto);
-        contadorVictoriasPC.setForeground(colorTexto);
-
-    }//GEN-LAST:event_botonConfigActionPerformed
 
     private void botonLeyendaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonLeyendaActionPerformed
 
@@ -486,7 +479,6 @@ public class VentanaJuego extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton botonConfig;
     private javax.swing.JButton botonLagarto;
     private javax.swing.JButton botonLeyenda;
     private javax.swing.JButton botonPapel;
@@ -499,8 +491,8 @@ public class VentanaJuego extends javax.swing.JFrame {
     private javax.swing.JLabel contadorVictoriasUsuario1;
     private javax.swing.JLabel etiquetaApuestaJugador;
     private javax.swing.JLabel etiquetaApuestaPC;
+    private javax.swing.JLabel etiquetaNickRival;
     private javax.swing.JLabel etiquetaNomJugador;
-    private javax.swing.JLabel etiquetaOrdenador;
     private javax.swing.JLabel etiquetaVS;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -513,14 +505,14 @@ public class VentanaJuego extends javax.swing.JFrame {
     private int generarApuestaPC() {
 
         if (modoJuego == CLASICO) {
-            apuestaPC = generaNum.nextInt(3) + 1;
+            apuestaRival = generaNum.nextInt(3) + 1;
         } else {
             if (modoJuego == BIG_BANG) {
-                apuestaPC = generaNum.nextInt(5) + 1;
+                apuestaRival = generaNum.nextInt(5) + 1;
             }
         }
 
-        switch (apuestaPC) {
+        switch (apuestaRival) {
             case 1:
                 etiquetaApuestaPC.setIcon(piedra);
                 break;
@@ -537,7 +529,7 @@ public class VentanaJuego extends javax.swing.JFrame {
                 etiquetaApuestaPC.setIcon(spock);
                 break;
         }
-        return apuestaPC;
+        return apuestaRival;
     }
 
     private void limpiarPantalla() {
@@ -578,86 +570,99 @@ public class VentanaJuego extends javax.swing.JFrame {
 
     private void controlaJugada(int apuestaUsuario) {
 
-        apuestaPC = this.generarApuestaPC();
+        if (JDialogConfiguracion.isMultijugadorActivo()) {
+            switch (JDialogConfiguracion.getModoMultijugador()) {
+                case 1:
+                    // meter en do while, !servidor.cerrarConexion ? 
+                    System.out.println("Apuesta Usuario: " + VentanaJuego.apuestaUsuario);
+                    servidor.enviarDatos(VentanaJuego.apuestaUsuario);
+                    System.out.println("Ha enviado datos");
+                    //servidor.enviarNick();
+                    //nickRival = servidor.recibirNick();
+                    //etiquetaNickRival.setText(nickRival);
+                    apuestaRival = servidor.recibirDatos();
+                    switch (apuestaRival) {
+                        case 1:
+                            etiquetaApuestaPC.setIcon(piedra);
+                            break;
+                        case 2:
+                            etiquetaApuestaPC.setIcon(papel);
+                            break;
+                        case 3:
+                            etiquetaApuestaPC.setIcon(tijera);
+                            break;
+                        case 4:
+                            etiquetaApuestaPC.setIcon(lagarto);
+                            break;
+                        case 5:
+                            etiquetaApuestaPC.setIcon(spock);
+                            break;
+                    }
+                    break;
+                case 2:
+                    cliente.enviarDatos(VentanaJuego.apuestaUsuario);
+                    //cliente.enviarNick();
+                    //nickRival = cliente.recibirNick();
+                    //etiquetaNickRival.setText(nickRival);
+                    System.out.println("Ha enviado datos el cliente");
+                    //cliente.start();
 
-        manoVencedora = PiedraPapelTijera.vencedor(apuestaUsuario, apuestaPC);
+                    apuestaRival = cliente.recibirDatos();
+                    switch (apuestaRival) {
+                        case 1:
+                            etiquetaApuestaPC.setIcon(piedra);
+                            break;
+                        case 2:
+                            etiquetaApuestaPC.setIcon(papel);
+                            break;
+                        case 3:
+                            etiquetaApuestaPC.setIcon(tijera);
+                            break;
+                        case 4:
+                            etiquetaApuestaPC.setIcon(lagarto);
+                            break;
+                        case 5:
+                            etiquetaApuestaPC.setIcon(spock);
+                            break;
+                    }
+                    break;
+            }
+        } else {
+            etiquetaNickRival.setText("Ordenador");
+            apuestaRival = this.generarApuestaPC();
+        }
+
+        manoVencedora = PiedraPapelTijera.vencedor(apuestaUsuario, apuestaRival);
+        
+        Reproductor reproductor = new Reproductor();
+        reproductor.getManoVencedora(manoVencedora);
 
         PiedraPapelTijera.puntuar(manoVencedora);
-   
+
         contadorVictoriasUsuario.setText(String.valueOf(PiedraPapelTijera.getPuntuacionUsuario()));
         contadorEmpates.setText(String.valueOf(PiedraPapelTijera.getPuntuacionEmpate()));
-        contadorVictoriasPC.setText(String.valueOf(PiedraPapelTijera.getPuntuacionPC()));
+        contadorVictoriasPC.setText(String.valueOf(PiedraPapelTijera.getPuntuacionRival()));
         
-        this.sonidoGanador();
+        reproductor.start();
 
         if (PiedraPapelTijera.partidaAcabada()) {
 
-            if (PiedraPapelTijera.getPuntuacionPC() > PiedraPapelTijera.getPuntuacionUsuario()) {
-                JOptionPane.showMessageDialog(this, "Gana PC");
+            if (PiedraPapelTijera.getPuntuacionRival() > PiedraPapelTijera.getPuntuacionUsuario()) {
+                JOptionPane.showMessageDialog(this, "Gana Rival");
             } else {
-                if (PiedraPapelTijera.getPuntuacionPC() == PiedraPapelTijera.getPuntuacionUsuario()) {
+                if (PiedraPapelTijera.getPuntuacionRival() == PiedraPapelTijera.getPuntuacionUsuario()) {
                     JOptionPane.showMessageDialog(this, "Empate");
                 } else {
                     JOptionPane.showMessageDialog(this, "Gana " + JDialogConfiguracion.getNick());
                 }
             }
             PiedraPapelTijera.reiniciar();
-            // método limpiar pantalla?
             this.limpiarPantalla();
-
-            // Método renovar pantallaConfig.
             this.renovarPantallaConfig();
         }
     }
 
-    private void sonidoGanador() {
-        switch (manoVencedora) {
-            case PiedraPapelTijera.PIEDRA:
-                try {
-                    Player player = new Player(getClass().getResourceAsStream("/piedrapapeltijera/sonidos/piedra.mp3"));
-                    player.play();
-                    player.close();
-                } catch (Exception e) {
-                    System.out.println("Error al reproducir el audio");
-                }
-                break;
-            case PiedraPapelTijera.PAPEL:
-                try {
-                    Player player = new Player(getClass().getResourceAsStream("/piedrapapeltijera/sonidos/paper-rustle-5.mp3"));
-                    player.play();
-                    player.close();
-                } catch (Exception e) {
-                    System.out.println("Error al reproducir el audio");
-                }
-                break;
-            case PiedraPapelTijera.TIJERA:
-                try {
-                    Player player = new Player(getClass().getResourceAsStream("/piedrapapeltijera/sonidos/salamisound-1020102-paper-scissors-office.mp3"));
-                    player.play();
-                    player.close();
-                } catch (Exception e) {
-                    System.out.println("Error al reproducir el audio");
-                }
-                break;
-            case PiedraPapelTijera.LAGARTO:
-                try {
-                    Player player = new Player(getClass().getResourceAsStream("/piedrapapeltijera/sonidos/Velociraptor Call-SoundBible.com-1782075819.mp3"));
-                    player.play();
-                    player.close();
-                } catch (Exception e) {
-                    System.out.println("Error al reproducir el audio");
-                }
-                break;
-            case PiedraPapelTijera.SPOCK:
-                try {
-                    Player player = new Player(getClass().getResourceAsStream("/piedrapapeltijera/sonidos/Spock_Checkmate.mp3"));
-                    player.play();
-                    player.close();
-                } catch (Exception e) {
-                    System.out.println("Error al reproducir el audio");
-                }
-                break;
-        }
-    }
+    
+    
 
 }
